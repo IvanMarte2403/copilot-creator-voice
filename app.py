@@ -154,8 +154,9 @@ def generate_class_script_to_google_doc(class_name, folder_id):
         f"preparando a profesionales para liderar proyectos innovadores en sus organizaciones."
         f"No incluyas introducción o conclusiones, solo el contenido de la clase, ni la palabra *Audio* y *Texto*"
         f"Separa por diapositivas, que la clase tenga objetivos, ejemplos o analogías, y una explicación directa, sin tanto divagar, que sea sencilla. Que sea la información de cada diapositiva completa"
-        f"ES MUY IMPORTANTE QUE TODAS LAS DIAPOSITIVAS TENGAS POR LO MINIMO 150 PALABRAS O NO SIRVE"
         f"minimo 30 diapositivas"
+        f"minimo 300 palabras por diapositivas, esto es lo mas importante, no importa si es tardado, se tiene que cumplir si o si"
+        f"tiene que tener mucho texto cada diapostiva y que sea muy completa, necesito que comprendas eso, es muy importante"
     )
     
     script = generate_chatgpt(prompt)
