@@ -8,6 +8,9 @@ from google.cloud import texttospeech
 import re
 import wave
 
+# Variable para controlar la generación de audio
+generacionAudioGoogle = 1  # Cambiar a 0 para no generar audio
+
 # Initial Configuration
 openai.api_key = api_key
 
@@ -55,7 +58,6 @@ def create_google_doc(service, title, content, folder_id):
 
 # Function to split text into chunks of less than 5000 bytes
 def split_text(text, max_chunk_size=5000):
-    # Ensure each chunk is under 5000 bytes, counting UTF-8 encoding
     words = text.split()
     chunks = []
     current_chunk = ""
@@ -85,7 +87,7 @@ def generate_audio_from_text_chunks(chunks, base_filename):
     client = texttospeech.TextToSpeechClient()
     voice = texttospeech.VoiceSelectionParams(
         language_code="es-US",
-        name='es-US-Neural2-B'
+        name='es-US-Neural2-A'  # Using a more realistic neural voice for Spanish
     )
     audio_config = texttospeech.AudioConfig(
         audio_encoding=texttospeech.AudioEncoding.LINEAR16
@@ -138,7 +140,7 @@ def upload_file_to_drive(service, file_path, folder_id):
 def sanitize_filename(filename):
     return re.sub(r'[^a-zA-Z0-9_\-\.]', '_', filename)
 
-# Main function to generate the script, create Google Doc, and generate audio
+# Main function to generate the script, create Google Doc, and optionally generate audio
 def generate_class_script_to_google_doc(class_name, folder_id):
     print("Generating script with OpenAI...")
     prompt = (
@@ -155,8 +157,9 @@ def generate_class_script_to_google_doc(class_name, folder_id):
         f"No incluyas introducción o conclusiones, solo el contenido de la clase, ni la palabra *Audio* y *Texto*"
         f"Separa por diapositivas, que la clase tenga objetivos, ejemplos o analogías, y una explicación directa, sin tanto divagar, que sea sencilla. Que sea la información de cada diapositiva completa"
         f"minimo 30 diapositivas"
-        f"minimo 300 palabras por diapositivas, esto es lo mas importante, no importa si es tardado, se tiene que cumplir si o si"
-        f"tiene que tener mucho texto cada diapostiva y que sea muy completa, necesito que comprendas eso, es muy importante"
+        f"minimo 250 palabras por diapositivas, esto es lo mas importante, no importa si es tardado, se tiene que cumplir si o si"
+        f"tiene que tener mucho texto cada diapositiva y que sea muy completa, necesito que comprendas eso, es muy importante"
+        f"Es importante tener todo el número de slides requerido, no quiero ejemplo, quiero todas las diapositivas completas, en este caso minimo 30 diapositivas"
     )
     
     script = generate_chatgpt(prompt)
@@ -173,16 +176,17 @@ def generate_class_script_to_google_doc(class_name, folder_id):
     # Create the Google Docs document with the generated content
     doc_id = create_google_doc(creds, f'Script de la clase {class_name}', script, folder_id)
     
-    # Generate audio from the script
-    sanitized_class_name = sanitize_filename(class_name)
-    chunks = split_text(script)
-    audio_files = generate_audio_from_text_chunks(chunks, sanitized_class_name)
-    combined_audio_filename = f'{sanitized_class_name}.wav'
-    combine_audio_files(audio_files, combined_audio_filename)
-    
-    # Upload the combined audio file to Google Drive
-    drive_service = build('drive', 'v3', credentials=creds)
-    upload_file_to_drive(drive_service, combined_audio_filename, folder_id)
+    if generacionAudioGoogle == 1:
+        # Generate audio from the script
+        sanitized_class_name = sanitize_filename(class_name)
+        chunks = split_text(script)
+        audio_files = generate_audio_from_text_chunks(chunks, sanitized_class_name)
+        combined_audio_filename = f'{sanitized_class_name}.wav'
+        combine_audio_files(audio_files, combined_audio_filename)
+        
+        # Upload the combined audio file to Google Drive
+        drive_service = build('drive', 'v3', credentials=creds)
+        upload_file_to_drive(drive_service, combined_audio_filename, folder_id)
 
 # Run the main function and specify the folder ID
 generate_class_script_to_google_doc('¿Qué es ciencia de datos y por qué la utilizan las empresas?.', '1Aar9VDx_if9ifhT3Sz1uQbbpWYy1J9Wu')
